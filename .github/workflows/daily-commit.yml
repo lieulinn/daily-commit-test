@@ -2,7 +2,8 @@ name: Daily Auto Commit
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    # Berjalan 2x sehari: Jam 00:00 & 12:00 UTC (Sama dengan Jam 07:00 & 19:00 WIB)
+    - cron: '0 0,12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,14 +13,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Update log file
+      - name: Update log file & generate random commit message
         run: |
-          echo "Last active: $(date)" >> activity.log
+          # Perbarui log harian
+          echo "Updated at: $(date)" >> activity.log
+
+          # Array pilihan pesan commit yang terlihat profesional
+          MESSAGES=(
+            "docs: update daily activity logs"
+            "chore: routine system maintenance and logs update"
+            "docs: update documentation notes"
+            "style: minor formatting updates in logs"
+            "chore: sync project metrics and activity logs"
+            "refactor: update automated log structure"
+            "docs: maintain daily progress records"
+          )
+
+          # Pilih satu pesan acak dari array
+          RANDOM_MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+          echo "COMMIT_MSG=$RANDOM_MSG" >> $GITHUB_ENV
 
       - name: Commit and Push changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add activity.log
-          git commit -m "chore: daily activity log [skip ci]" || exit 0
+          git commit -m "$COMMIT_MSG [skip ci]" || exit 0
           git push
