@@ -1,1 +1,26 @@
+name: Daily Auto Commit
 
+on:
+  schedule:
+    # Menggunakan format Cron (menjalankan skrip setiap hari jam 00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Memungkinkan kamu menjalankan workflow ini secara manual dari tab Actions
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update log file
+        run: |
+          echo "Last active: $(date)" >> activity.log
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add activity.log
+          git commit -m "chore: daily activity log [skip ci]" || exit 0
+          git push
